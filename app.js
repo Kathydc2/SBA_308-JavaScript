@@ -78,13 +78,20 @@ const LearnerSubmissions = [
   ];
 
   //____Create a function and make sure everything is inside the function below___//
-function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
-  if (AssignmentGroup.course_id !== CourseInfo.id) {
-    throw "Error - Invalid invalid AssignmentGroup does not belong to the specified course.";
-  }
 
+function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
   const learnerArray = []; //PUSH ALL ANSWERS HERE
-    
+
+    //____Make sure Assignment Group matches Course Id__//
+    if (AssignmentGroup.course_id !== CourseInfo.id) {
+      try{
+      throw "Error - AssignmentGroup does not belong to the specified course.";
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  
+
   //_____Find the ID's_____//
   const learnerIds = [];
   for (let i = 0; i < LearnerSubmissions.length; i++) {
@@ -110,10 +117,8 @@ function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
   let assignment1PPoints = 0;
   let assignment2Score = 0;
   let assignment2PPoints = 0;
-  let assignment2LatePenalty = 0;
+  let assignment2LatePenalty = 0.1;
 
- 
-   
 
    // Calculate scores for assignment 1
   for (let submission of LearnerSubmissions) {
@@ -128,30 +133,42 @@ function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
     }
   }
 
-  // Calculate scores for assignment 2
-  for (let submission of LearnerSubmissions) {
-    if (submission.learner_id === learner_id && submission.assignment_id === 2) {
+ // Calculate scores for assignment 2
+for (let submission of LearnerSubmissions) {
+  if (submission.learner_id === learner_id && submission.assignment_id === 2) {
+    try {
       const assignment = AssignmentGroup.assignments.find(assignmentObject => assignmentObject.id === submission.assignment_id);
       if (assignment) {
-        if (new Date(submission.submission.submitted_at) > new Date(assignment.due_at)) {
-          const latePenalty = (assignment.points_possible * 0.1);
+        const submissionDate = new Date(submission.submission.submitted_at); // Potential error point
+        const dueDate = new Date(assignment.due_at); // Potential error point
+        if (submissionDate > dueDate) {
+          let latePenalty = 0;
+          if (assignment2LatePenalty) {
+            latePenalty = assignment.points_possible * assignment2LatePenalty;
+          } else {
+            latePenalty = assignment.points_possible * 0.1; // Assuming 10% late penalty
+          }
           assignment2LatePenalty = latePenalty;
           assignment2Score += submission.submission.score - latePenalty;
         } else {
           assignment2Score += submission.submission.score;
         }
         assignment2PPoints += assignment.points_possible;
-       
       }
+    } catch (err) {
+      console.log("Error occurred while processing assignment 2 submissions", err);
+      // Handle the error here, if needed
     }
   }
+}
+  
 
-  // Calculate averages
+  // Calculate averages of the scores 
   const avg = (assignment1Score + assignment2Score) / (assignment1PPoints + assignment2PPoints);
   const assignment1Avg = assignment1Score / assignment1PPoints || 0;
-  const assignment2Avg = assignment2PPoints > 0 ? (assignment2Score / assignment2PPoints) : 0;
+  const assignment2Avg = assignment2PPoints > 0 ? (assignment2Score / assignment2PPoints) : 0; 
 
-  // Assign calculated values to learnerData
+  // Assign values to learnerData and use toFixed. for the decimal places
   learnerData.avg = parseFloat(avg.toFixed(3));
   learnerData[1] = parseFloat(assignment1Avg.toFixed(3));
   learnerData[2] = parseFloat(assignment2Avg.toFixed(3));
@@ -162,11 +179,7 @@ function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
 }
   return learnerArray;
 }
-
-try{
   const learnerArray = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
   console.log(learnerArray);
-} catch (error) {
-  console.error(error.message);
-}
+
 
