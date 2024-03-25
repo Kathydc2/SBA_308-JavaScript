@@ -80,7 +80,7 @@ const LearnerSubmissions = [
   //____Create a function and make sure everything is inside the function below___//
 
 function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
-  const learnerArray = []; //PUSH ALL ANSWERS HERE
+  const result = []; //PUSH ALL ANSWERS HERE
 
     //____Make sure Assignment Group matches Course Id__//
     if (AssignmentGroup.course_id !== CourseInfo.id) {
@@ -139,14 +139,14 @@ for (let submission of LearnerSubmissions) {
     try {
       const assignment = AssignmentGroup.assignments.find(assignmentObject => assignmentObject.id === submission.assignment_id);
       if (assignment) {
-        const submissionDate = new Date(submission.submission.submitted_at); // Potential error point
-        const dueDate = new Date(assignment.due_at); // Potential error point
+        const submissionDate = new Date(submission.submission.submitted_at); 
+        const dueDate = new Date(assignment.due_at); 
         if (submissionDate > dueDate) {
           let latePenalty = 0;
           if (assignment2LatePenalty) {
             latePenalty = assignment.points_possible * assignment2LatePenalty;
           } else {
-            latePenalty = assignment.points_possible * 0.1; // Assuming 10% late penalty
+            latePenalty = assignment.points_possible * 0.1; // 10% late penalty
           }
           assignment2LatePenalty = latePenalty;
           assignment2Score += submission.submission.score - latePenalty;
@@ -157,7 +157,7 @@ for (let submission of LearnerSubmissions) {
       }
     } catch (err) {
       console.log("Error occurred while processing assignment 2 submissions", err);
-      // Handle the error here, if needed
+      // Handle the error here
     }
   }
 }
@@ -174,12 +174,13 @@ for (let submission of LearnerSubmissions) {
   learnerData[2] = parseFloat(assignment2Avg.toFixed(3));
  
 
-  // Push learnerData to learnerArray
-  learnerArray.push(learnerData);
+  // Push learnerData to result
+  result.push(learnerData);
 }
-  return learnerArray;
+ 
+  return result;
 }
-  const learnerArray = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
-  console.log(learnerArray);
+  const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
+  console.log(result);
 
 
